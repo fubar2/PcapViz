@@ -13,6 +13,9 @@ as many other visualisation packages do. It should be possible to determine key 
 ## Features
 - Network topology graphs - 2 = device; conversation information flow graphs: 3 = ip, 4 = tcp/udp
 - Communication graph node labels show country information and connection stats
+- Filtering by mac address allows focus on a single device at all layers effectively removing chatter from other devices obscuring the network graph
+- Filtering by protocol using either whitelist or blacklist - eg ARP, UDP etc.
+- Automated separate graphs by protocol where the number of nodes exceeds NMAX, default 100
 - Lists the most frequently contacted and frequently sending machines
 - Node labels include the host domain name if available from a reverse DNS lookup. 
 - command line choice of Graphviz graph layout engine such as dot or sfdp.
@@ -23,8 +26,9 @@ as many other visualisation packages do. It should be possible to determine key 
 ```
 usage: main.py [-h] [-i [PCAPS [PCAPS ...]]] [-o OUT] [-g GRAPHVIZ] [--layer2]
                [--layer3] [--layer4] [-d] [-w [WHITELIST [WHITELIST ...]]]
-               [-b [BLACKLIST [BLACKLIST ...]]] [-fi] [-fo] [-G GEOPATH]
-               [-l GEOLANG] [-E LAYOUTENGINE] [-s SHAPE] [-n NMAX]
+               [-b [BLACKLIST [BLACKLIST ...]]] [-r [RESTRICT [RESTRICT ...]]]
+               [-fi] [-fo] [-G GEOPATH] [-l GEOLANG] [-E LAYOUTENGINE]
+               [-s SHAPE] [-n NMAX]
 
 pcap topology and message mapper
 
@@ -46,6 +50,9 @@ optional arguments:
   -b [BLACKLIST [BLACKLIST ...]], --blacklist [BLACKLIST [BLACKLIST ...]]
                         Blacklist of protocols - NONE of the packets having
                         these layers shown
+  -r [RESTRICT [RESTRICT ...]], --restrict [RESTRICT [RESTRICT ...]]
+                        Whitelist of devices - restrict all graphs to traffic
+                        to or from mac address(es) as "xx:xx:xx:xx:xx:xx"
   -fi, --frequent-in    print frequently contacted nodes to stdout
   -fo, --frequent-out   print frequent source nodes to stdout
   -G GEOPATH, --geopath GEOPATH

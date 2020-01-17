@@ -39,17 +39,18 @@ class GraphManager(object):
 			self.geo_ip = maxminddb.open_database(self.args.geopath) # command line -G
 		except:
 			logging.warning("could not load GeoIP data from supplied parameter geopath %s" % self.args.geopath)
-		macs = {}
-		macips = {}
-		for packet in packets:
-			macs.setdefault(packet[0].src,0)
-			macs[packet[0].src] += 1
-			macs.setdefault(packet[0].dst,0)
-			macs[packet[0].dst] += 1
-			if any(map(lambda p: packet.haslayer(p), [TCP, UDP])):
-				ip = packet[1].src
-				macips.setdefault(ip,packet[0].src)
-		print('# mac addresses seen =','\t'.join(['%s\t%d' % (x,macs[x]) for x in macs]),'\nmac ips = \n','\n'.join(['%s\t%s' % (x,macips[x]) for x in macips.keys()]))
+		if self.args.DEBUG:
+			macs = {}
+			macips = {}
+			for packet in packets:
+				macs.setdefault(packet[0].src,0)
+				macs[packet[0].src] += 1
+				macs.setdefault(packet[0].dst,0)
+				macs[packet[0].dst] += 1
+				if any(map(lambda p: packet.haslayer(p), [TCP, UDP])):
+					ip = packet[1].src
+					macips.setdefault(ip,packet[0].src)
+			print('# mac\tip\tpackets\n%s' % '\n'.join(['%s\t%s\t%d\n' % (x,macips.get(x,''),macs[x]) for x in macs]))
 		if self.args.restrict:
 			packetsr = [x for x in packets if ((x[0].src in self.args.restrict) or (x[0].dst in self.args.restrict))]
 			if len(packetsr) == 0:
