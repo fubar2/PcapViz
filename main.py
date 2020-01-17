@@ -31,49 +31,58 @@ args = parser.parse_args()
 
 llook = {'DNS':DNS,'UDP':UDP,'ARP':ARP,'NTP':NTP,'IP':IP,'TCP':TCP,'Raw':Raw,'HTTP':HTTP,'RIP':RIP,'RTP':RTP}
 
+def doLayer(layer, packets,fname,args):
+			args.nmax = int(args.nmax)
+			g = GraphManager(packets, layer=layer, args=args)
+			nn = len(g.graph.nodes())
+			if args.out:
+				if nn > args.nmax:
+					print('Asked to draw %d nodes with --nmax set to %d. Will also do useful protocols separately' % (nn,args.nmax))
+					for kind in llook.keys():
+						subset = [x for x in packets if x.haslayer(kind) and x != None]  
+						if len(subset) > 2:
+							sg = GraphManager(subset,layer=layer, args=args)
+							nn = len(sg.graph.nodes())
+							if nn > 2:
+								ofn = '%s_%d_%s_%s' % (kind,nn,fname,args.out)
+								sg.draw(filename = ofn)
+								print('drew %s %d nodes' % (ofn,nn))
+				g.draw(filename='%s_layer%d_%s' % (fname,layer,args.out))
+			if args.frequent_in:
+				g.get_in_degree()
+
+			if args.frequent_out:
+				g.get_out_degree()
+
+			if args.graphviz:
+				g.get_graphviz_format(args.graphviz)
+
+
 if __name__ == '__main__':
 	if args.pcaps:
-		bl=[]
-		wl=[]
-		pin = ScapySource.load(args.pcaps)
-		if args.whitelist != None and args.blacklist != None:
-			print('### Parameter error: Specify --blacklist or specify --whitelist but not both together please.')
-			sys.exit(1)
-		packets = pin
-		if args.whitelist: # packets are returned from ScapySource.load as a list so cannot use pcap.filter(lambda...)
-			wl = [llook[x] for x in args.whitelist]
-			packets = [x for x in pin if sum([x.haslayer(y) for y in wl]) > 0 and x != None]  
-		elif args.blacklist:
-			bl = [llook[x] for x in args.blacklist]
-			packets = [x for x in pin if sum([x.haslayer(y) for y in bl]) == 0 and x != None]  
-		if args.DEBUG and (args.blacklist or args.whitelist):
-			print('### Read', len(pin), 'packets. After applying supplied filters,',len(packets),'are left. wl=',wl,'bl=',bl)			
-		layer = 3
-		if args.layer2:
-			layer = 2
-		elif args.layer4:
-			layer = 4
-		args.nmax = int(args.nmax)
-		g = GraphManager(packets, layer=layer, args=args)
-		nn = len(g.graph.nodes())
-		if args.out:
-			if nn > args.nmax:
-				print('Asked to draw %d nodes with --nmax set to %d. Will also do useful protocols separately' % (nn,args.nmax))
-				for kind in llook.keys():
-					subset = [x for x in packets if x.haslayer(kind) and x != None]  
-					if len(subset) > 2:
-						sg = GraphManager(subset,layer=layer, args=args)
-						nn = len(sg.graph.nodes())
-						if nn > 2:
-							ofn = '%s_%d_%s' % (kind,nn,args.out)
-							sg.draw(filename = ofn)
-							print('drew %s %d nodes' % (ofn,nn))
-			g.draw(filename=args.out)
-		if args.frequent_in:
-			g.get_in_degree()
-
-		if args.frequent_out:
-			g.get_out_degree()
-
-		if args.graphviz:
-			g.get_graphviz_format(args.graphviz)
+		for fname in args.pcaps:
+			pin = rdpcap(fname) # ScapySource.load(args.pcaps)
+			bl=[]
+			wl=[]
+			if args.whitelist != None and args.blacklist != None:
+				print('### Parameter error: Specify --blacklist or specify --whitelist but not both together please.')
+				sys.exit(1)
+			packets = pin
+			if args.whitelist: # packets are returned from ScapySource.load as a list so cannot use pcap.filter(lambda...)
+				wl = [llook[x] for x in args.whitelist]
+				packets = [x for x in pin if sum([x.haslayer(y) for y in wl]) > 0 and x != None]  
+			elif args.blacklist:
+				bl = [llook[x] for x in args.blacklist]
+				packets = [x for x in pin if sum([x.haslayer(y) for y in bl]) == 0 and x != None]  
+			if args.DEBUG and (args.blacklist or args.whitelist):
+				print('### Read', len(pin), 'packets. After applying supplied filters,',len(packets),'are left. wl=',wl,'bl=',bl)			
+			if not (args.layer2 or args.layer3 or args.layer4): # none requested - do all
+				for layer in [2,3,4]:
+					doLayer(layer, packets,fname,args)
+			else:
+				layer = 3
+				if args.layer2:
+					layer = 2
+				elif args.layer4:
+					layer = 4
+				doLayer(layer,packets,fname,args)	
