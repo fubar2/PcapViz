@@ -43,14 +43,14 @@ class GraphManager(object):
 			macs = {}
 			macips = {}
 			for packet in packets:
-				macs.setdefault(packet[0].src,0)
-				macs[packet[0].src] += 1
-				macs.setdefault(packet[0].dst,0)
-				macs[packet[0].dst] += 1
+				macs.setdefault(packet[0].src,[0,''])
+				macs[packet[0].src][0] += 1
+				macs.setdefault(packet[0].dst,[0,''])
+				macs[packet[0].dst][0] += 1
 				if any(map(lambda p: packet.haslayer(p), [TCP, UDP])):
 					ip = packet[1].src
-					macips.setdefault(ip,packet[0].src)
-			print('# mac\tip\tpackets\n%s' % '\n'.join(['%s\t%s\t%d\n' % (x,macips.get(x,''),macs[x]) for x in macs]))
+					macs[packet[0].src][1] = ip
+			print('# mac\tip\tpackets\n%s' % '\n'.join(['%s\t%s\t%d\n' % (x,macs[x][1],macs[x][0]) for x in macs.keys()]))
 		if self.args.restrict:
 			packetsr = [x for x in packets if ((x[0].src in self.args.restrict) or (x[0].dst in self.args.restrict))]
 			if len(packetsr) == 0:
@@ -174,16 +174,19 @@ class GraphManager(object):
 			return "%s:%i" % (src, _.sport), "%s:%i" % (dst, _.dport), packet
 
 	def draw(self, filename=None):
-		self.graph.label ="Layer %d traffic graph for packets from %s" % (self.layer,str(self.args.pcaps))
-
 		graph = self.get_graphviz_format()
-		
+		graph.label ="Layer %d traffic graph for packets from %s" % (self.layer,str(self.args.pcaps))		
 		for node in graph.nodes():
 			if node not in self.data:
 				# node might be deleted, because it's not legit etc.
 				continue
 			snode = str(node)
-			nnode = self.lookup(snode)
+			nnode = snode
+			ssnode = snode.split(':') # look for mac or a port on the ip
+			if len(ssnode) <= 2:
+				nnode = self.lookup(ssnode[0])
+			if self.args.DEBUG:
+				print('## nnode on',snode,'=',nnode)
 			node.attr['shape'] = self.args.shape
 			node.attr['fontsize'] = '10'
 			node.attr['width'] = '0.5'
