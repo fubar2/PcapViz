@@ -18,6 +18,7 @@ parser.add_argument('--layer4', action='store_true', help='tcp/udp message graph
 parser.add_argument('-d','--DEBUG', action='store_true', help='show debug messages')
 parser.add_argument('-w', '--whitelist', nargs='*', help='Whitelist of protocols - only packets matching these layers shown')
 parser.add_argument('-b', '--blacklist', nargs='*', help='Blacklist of protocols - NONE of the packets having these layers shown')
+parser.add_argument('-r', '--restrict', nargs='*', help='Whitelist of devices - restrict all graphs to traffic to or from mac address(es) as "xx:xx:xx:xx:xx:xx"')
 parser.add_argument('-fi', '--frequent-in', action='store_true', help='print frequently contacted nodes to stdout')
 parser.add_argument('-fo', '--frequent-out', action='store_true', help='print frequent source nodes to stdout')
 parser.add_argument('-G', '--geopath', default='/usr/share/GeoIP/GeoLite2-City.mmdb', help='path to maxmind geodb data')
@@ -46,7 +47,7 @@ if __name__ == '__main__':
 			bl = [llook[x] for x in args.blacklist]
 			packets = [x for x in pin if sum([x.haslayer(y) for y in bl]) == 0 and x != None]  
 		if args.DEBUG and (args.blacklist or args.whitelist):
-			print('### Read', len(pin), 'packets. After applying supplied filters,',len(packets),'are left. wl=',wl,'bl=',bl)
+			print('### Read', len(pin), 'packets. After applying supplied filters,',len(packets),'are left. wl=',wl,'bl=',bl)			
 		layer = 3
 		if args.layer2:
 			layer = 2
@@ -55,20 +56,19 @@ if __name__ == '__main__':
 		args.nmax = int(args.nmax)
 		g = GraphManager(packets, layer=layer, args=args)
 		nn = len(g.graph.nodes())
-		if nn > args.nmax:
-			print('Asked to draw %d nodes with --nmax set to %d. Will also do useful protocols separately' % (nn,args.nmax))
-			for kind in llook.keys():
-				subset = [x for x in packets if x.haslayer(kind) and x != None]  
-				if len(subset) > 2:
-					sg = GraphManager(subset,layer=layer, args=args)
-					nn = len(sg.graph.nodes())
-					if nn > 2:
-						ofn = '%s_%d_%s' % (kind,nn,args.out)
-						sg.draw(filename = ofn)
-						print('drew %s %d nodes' % (ofn,nn))
 		if args.out:
+			if nn > args.nmax:
+				print('Asked to draw %d nodes with --nmax set to %d. Will also do useful protocols separately' % (nn,args.nmax))
+				for kind in llook.keys():
+					subset = [x for x in packets if x.haslayer(kind) and x != None]  
+					if len(subset) > 2:
+						sg = GraphManager(subset,layer=layer, args=args)
+						nn = len(sg.graph.nodes())
+						if nn > 2:
+							ofn = '%s_%d_%s' % (kind,nn,args.out)
+							sg.draw(filename = ofn)
+							print('drew %s %d nodes' % (ofn,nn))
 			g.draw(filename=args.out)
-
 		if args.frequent_in:
 			g.get_in_degree()
 

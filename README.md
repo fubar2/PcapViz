@@ -22,8 +22,9 @@ as many other visualisation packages do. It should be possible to determine key 
 
 ```
 usage: main.py [-h] [-i [PCAPS [PCAPS ...]]] [-o OUT] [-g GRAPHVIZ] [--layer2]
-               [--layer3] [--layer4] [-fi] [-fo] [-G GEOPATH] [-l GEOLANG]
-               [-E LAYOUTENGINE] [-s SHAPE]
+               [--layer3] [--layer4] [-d] [-w [WHITELIST [WHITELIST ...]]]
+               [-b [BLACKLIST [BLACKLIST ...]]] [-fi] [-fo] [-G GEOPATH]
+               [-l GEOLANG] [-E LAYOUTENGINE] [-s SHAPE] [-n NMAX]
 
 pcap topology and message mapper
 
@@ -38,6 +39,13 @@ optional arguments:
   --layer2              device topology network graph
   --layer3              ip message graph. Default
   --layer4              tcp/udp message graph
+  -d, --DEBUG           show debug messages
+  -w [WHITELIST [WHITELIST ...]], --whitelist [WHITELIST [WHITELIST ...]]
+                        Whitelist of protocols - only packets matching these
+                        layers shown
+  -b [BLACKLIST [BLACKLIST ...]], --blacklist [BLACKLIST [BLACKLIST ...]]
+                        Blacklist of protocols - NONE of the packets having
+                        these layers shown
   -fi, --frequent-in    print frequently contacted nodes to stdout
   -fo, --frequent-out   print frequent source nodes to stdout
   -G GEOPATH, --geopath GEOPATH
@@ -48,6 +56,10 @@ optional arguments:
                         Graph layout method - dot, sfdp etc.
   -s SHAPE, --shape SHAPE
                         Graphviz node shape - circle, diamond, box etc.
+  -n NMAX, --nmax NMAX  Automagically draw individual protocols where useful
+                        if more than --nmax nodes. 100 seems too many for any
+                        one graph.
+
 ```
 
 ## Examples from running tests/core.py on the test.pcap file
