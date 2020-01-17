@@ -185,8 +185,7 @@ class GraphManager(object):
 			ssnode = snode.split(':') # look for mac or a port on the ip
 			if len(ssnode) <= 2:
 				nnode = self.lookup(ssnode[0])
-			if self.args.DEBUG:
-				print('## nnode on',snode,'=',nnode)
+			
 			node.attr['shape'] = self.args.shape
 			node.attr['fontsize'] = '10'
 			node.attr['width'] = '0.5'
