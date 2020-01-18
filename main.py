@@ -38,6 +38,7 @@ def doLayer(layer, packets,fname,args):
 	"""
 	args.nmax = int(args.nmax)
 	g = GraphManager(packets, layer=layer, args=args)
+	g.graph.comment="Layer %d traffic graph for %s" % (layer,fname)
 	nn = len(g.graph.nodes())
 	if args.out:
 		if nn > args.nmax:

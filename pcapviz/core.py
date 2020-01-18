@@ -175,7 +175,6 @@ class GraphManager(object):
 
 	def draw(self, filename=None):
 		graph = self.get_graphviz_format()
-		graph.label ="Layer %d traffic graph for packets from %s" % (self.layer,str(self.args.pcaps))		
 		for node in graph.nodes():
 			if node not in self.data:
 				# node might be deleted, because it's not legit etc.
