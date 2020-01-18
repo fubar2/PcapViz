@@ -75,9 +75,10 @@ optional arguments:
                         Graphviz node shape - circle, diamond, box etc.
   -n NMAX, --nmax NMAX  Automagically draw individual protocols if more than
                         --nmax nodes. 100 seems too many for any one graph.
-  -a, --append          Append multiple input files before processing - old
-                        behaviour. New default is to batch process each input
-                        pcap file.
+  -a, --append          Append multiple input files before processing as
+                        PcapVis previously did. New default is to batch
+                        process each input pcap file separately.
+
 ```
 
 ## Examples from running tests/core.py on the test.pcap file

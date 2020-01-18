@@ -26,7 +26,7 @@ parser.add_argument('-l', '--geolang', default='en', help='Language to use for g
 parser.add_argument('-E', '--layoutengine', default='sfdp', help='Graph layout method - dot, sfdp etc.')
 parser.add_argument('-s', '--shape', default='diamond', help='Graphviz node shape - circle, diamond, box etc.')
 parser.add_argument('-n', '--nmax', default=100, help='Automagically draw individual protocols if more than --nmax nodes. 100 seems too many for any one graph.')
-parser.add_argument('-a', '--append', action='store_true',default=False, help='Append multiple input files before processing - old behaviour. New default is to batch process each input pcap file.')
+parser.add_argument('-a', '--append', action='store_true',default=False, help='Append multiple input files before processing as PcapVis previously did. New default is to batch process each input pcap file separately.')
 
 args = parser.parse_args()
 
