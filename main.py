@@ -32,12 +32,13 @@ args = parser.parse_args()
 
 llook = {'DNS':DNS,'UDP':UDP,'ARP':ARP,'NTP':NTP,'IP':IP,'TCP':TCP,'Raw':Raw,'HTTP':HTTP,'RIP':RIP,'RTP':RTP}
 
-def doLayer(layer, packets,fname,args):
+def doLayer(layer, packets,fname,args,title):
 	"""
 	run a single layer analysis
 	"""
 	args.nmax = int(args.nmax)
 	g = GraphManager(packets, layer=layer, args=args)
+	g.title = "Layer %d using %s" % (layer,title)
 	# g.graph['label'] = "Layer %d traffic graph for %s" % (layer,fname)
 	# cannot figure out how to get a lable - probably need a fake node without edges.
 	nn = len(g.graph.nodes())
@@ -50,10 +51,11 @@ def doLayer(layer, packets,fname,args):
 					sg = GraphManager(subset,layer=layer, args=args)
 					nn = len(sg.graph.nodes())
 					if nn > 2:
-						ofn = '%s_%d_%s_%s' % (kind,nn,fname,args.out)
+						ofn = '%s_%d_%s_%s' % (kind,nn,title.replace('+','_'),args.out)
+						sg.title = 'Layer %d drawn using %s' % (layer,fname)
 						sg.draw(filename = ofn)
 						print('drew %s %d nodes' % (ofn,nn))
-		g.draw(filename='%s_layer%d_%s' % (fname,layer,args.out))
+		g.draw(filename='%s_layer%d_%s' % (title.replace('+','_'),layer,args.out))
 	if args.frequent_in:
 		g.get_in_degree()
 
@@ -63,7 +65,7 @@ def doLayer(layer, packets,fname,args):
 	if args.graphviz:
 		g.get_graphviz_format(args.graphviz)
 
-def doPcap(pin,args):
+def doPcap(pin,args,title):
 	"""
 	filtering and control for analysis - amalgamated input or not 
 	runs all layers if no layer specified
@@ -84,22 +86,26 @@ def doPcap(pin,args):
 		print('### Read', len(pin), 'packets. After applying supplied filters,',len(packets),'are left. wl=',wl,'bl=',bl)			
 	if not (args.layer2 or args.layer3 or args.layer4): # none requested - do all
 		for layer in [2,3,4]:
-			doLayer(layer, packets,args.out,args)
+			doLayer(layer, packets,args.out,args,title)
 	else:
 		layer = 3
 		if args.layer2:
 			layer = 2
 		elif args.layer4:
 			layer = 4
-		doLayer(layer,packets,args.out,args)	
+		doLayer(layer,packets,args.out,args,title)	
 
 
 if __name__ == '__main__':
 	if args.pcaps:
 		if args.append: # old style amalgamated input
 			pin = ScapySource.load(args.pcaps)
-			doPcap(pin,args)
+			title = '+'.join(args.pcaps)
+			if len(title) > 50:
+				title = title[:50] + '....etc'
+			doPcap(pin,args,title)
 		else:
 			for fname in args.pcaps:
-				pin = rdpcap(fname) # ScapySource.load(args.pcaps)
-				doPcap(pin,args)
+				pin = rdpcap(fname) 
+				title = fname
+				doPcap(pin,args,title)

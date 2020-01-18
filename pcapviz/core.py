@@ -35,6 +35,7 @@ class GraphManager(object):
 		self.args = args
 		self.data = {}
 		self.deeNS = {} # cache for reverse lookups
+		self.title = 'Title goes here'
 		try:
 			self.geo_ip = maxminddb.open_database(self.args.geopath) # command line -G
 		except:
@@ -175,6 +176,7 @@ class GraphManager(object):
 
 	def draw(self, filename=None):
 		graph = self.get_graphviz_format()
+		graph.graph_attr['label'] = self.title
 		for node in graph.nodes():
 			if node not in self.data:
 				# node might be deleted, because it's not legit etc.
