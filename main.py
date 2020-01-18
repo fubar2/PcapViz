@@ -39,8 +39,6 @@ def doLayer(layer, packets,fname,args,title):
 	args.nmax = int(args.nmax)
 	g = GraphManager(packets, layer=layer, args=args)
 	g.title = "Layer %d using packets from %s" % (layer,title)
-	# g.graph['label'] = "Layer %d traffic graph for %s" % (layer,fname)
-	# cannot figure out how to get a lable - probably need a fake node without edges.
 	nn = len(g.graph.nodes())
 	if args.out:
 		if nn > args.nmax:
@@ -69,6 +67,21 @@ def doLayer(layer, packets,fname,args,title):
 
 	if args.graphviz:
 		g.get_graphviz_format(args.graphviz)
+		
+	if args.DEBUG:
+		macs = {}
+		for packet in packets:
+			macs.setdefault(packet[0].src,[0,'',''])
+			macs[packet[0].src][0] += 1
+			macs.setdefault(packet[0].dst,[0,'',''])
+			macs[packet[0].dst][0] += 1
+			if any(map(lambda p: packet.haslayer(p), [TCP, UDP])):
+				ip = packet[1].src
+				macs[packet[0].src][1] = ip
+				macs[packet[0].src][2] = g.iplookup(ip)
+		print('# mac\tip\thostinfo\tpackets\n%s' % '\n'.join(['%s\t%s\t%s\t%d\n' % (x,macs[x][1],macs[x][2],macs[x][0]) for x in macs.keys()]))
+
+
 
 def doPcap(pin,args,title):
 	"""
@@ -98,7 +111,8 @@ def doPcap(pin,args,title):
 			layer = 2
 		elif args.layer4:
 			layer = 4
-		doLayer(layer,packets,args.out,args,title)	
+		doLayer(layer,packets,args.out,args,title)
+	
 
 
 if __name__ == '__main__':

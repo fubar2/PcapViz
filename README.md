@@ -14,7 +14,7 @@ as many other visualisation packages do. It should be possible to determine key 
 
 ## Features
 - Draws network topology graphs - 2 = device; conversation information flow graphs: 3 = ip, 4 = tcp/udp
-- Communication graph node labels show host FQDN, country and city if available.
+- Communication graph node labels show host FQDN, country and city if available, otherwise whois data is shown
 - Edges are drawn in thickness proportional to traffic volume
 - Filtering by *mac address* allows focus on a single device at all layers. This effectively removes noise and chatter from other devices obscuring the network graph
 - Filtering by *protocol* using either whitelist or blacklist - eg ARP, UDP, NTP, RTP etc.
@@ -127,6 +127,7 @@ python3 main.py -i tests/test.pcap -fi --layer3
 
 	so of course, please run that! You are using a python virtual environment aren't you?
 	
+
  
 **Not exactly required so Optional** - 2 tests will fail and you'll see no country/city data:
 

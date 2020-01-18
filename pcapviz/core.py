@@ -22,7 +22,9 @@ import logging
 import os
 import socket
 import maxminddb
+from ipwhois import IPWhois
 
+deeNS = {}
 
 class GraphManager(object):
 	""" Generates and processes the graph based on packets
@@ -34,24 +36,11 @@ class GraphManager(object):
 		self.geo_ip = None
 		self.args = args
 		self.data = {}
-		self.deeNS = {} # cache for reverse lookups
 		self.title = 'Title goes here'
 		try:
 			self.geo_ip = maxminddb.open_database(self.args.geopath) # command line -G
 		except:
 			logging.warning("could not load GeoIP data from supplied parameter geopath %s" % self.args.geopath)
-		if self.args.DEBUG:
-			macs = {}
-			macips = {}
-			for packet in packets:
-				macs.setdefault(packet[0].src,[0,''])
-				macs[packet[0].src][0] += 1
-				macs.setdefault(packet[0].dst,[0,''])
-				macs[packet[0].dst][0] += 1
-				if any(map(lambda p: packet.haslayer(p), [TCP, UDP])):
-					ip = packet[1].src
-					macs[packet[0].src][1] = ip
-			print('# mac\tip\tpackets\n%s' % '\n'.join(['%s\t%s\t%d\n' % (x,macs[x][1],macs[x][0]) for x in macs.keys()]))
 		if self.args.restrict:
 			packetsr = [x for x in packets if ((x[0].src in self.args.restrict) or (x[0].dst in self.args.restrict))]
 			if len(packetsr) == 0:
@@ -83,12 +72,22 @@ class GraphManager(object):
 		for src, dst in self.graph.edges():
 			self._retrieve_edge_info(src, dst)
 
-	def lookup(self,ip):
+
+	def iplookup(self,ip):
 		"""deeNS caches all slow! fqdn reverse dns lookups from ip"""
-		kname = self.deeNS.get(ip,None)
+		kname = deeNS.get(ip,None)
 		if kname == None:
-			kname = socket.getfqdn(ip) 
-			self.deeNS[ip] = kname
+			kname = socket.getfqdn(ip)
+			if kname == ip:
+				who = IPWhois(ip)
+				qry = who.lookup_rdap(depth=1)
+				kname = qry['asn_description']
+				deeNS[ip] = kname
+				if self.args.DEBUG:
+					print('## looked up',ip,'and have',kname)
+		if kname == None:
+			kname = ip
+			deeNS[ip] = kname
 		return (kname)
 
 
@@ -134,11 +133,7 @@ class GraphManager(object):
 				self.data[node]['city'] = city if city else 'private'
 			except:
 				logging.debug("could not load GeoIP data for node %s" % node_ip)
-				# no lookup so not much data available
-				#del self.data[node]
 				
-		#TODO layer 2 info?
-
 
 	def _retrieve_edge_info(self, src, dst):
 		edge = self.graph[src][dst]
@@ -190,7 +185,7 @@ class GraphManager(object):
 			nnode = snode
 			ssnode = snode.split(':') # look for mac or a port on the ip
 			if len(ssnode) <= 2:
-				nnode = self.lookup(ssnode[0])
+				nnode = self.iplookup(ssnode[0])
 			
 			node.attr['shape'] = self.args.shape
 			node.attr['fontsize'] = '10'
