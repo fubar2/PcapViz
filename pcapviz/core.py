@@ -55,9 +55,11 @@ class GraphManager(object):
 		if self.args.restrict:
 			packetsr = [x for x in packets if ((x[0].src in self.args.restrict) or (x[0].dst in self.args.restrict))]
 			if len(packetsr) == 0:
-				print('### warning - no packets left after filtering on %s - removing filter' % self.args.restrict)
+				print('### warning - no packets left after filtering on %s - nothing to plot' % self.args.restrict)
+				return
 			else:
-				print('%d packets filtered with restrict = ' % (len(packets) - len(packetsr)),self.args.restrict)
+				if self.args.DEBUG:
+					print('%d packets filtered with restrict = ' % (len(packets) - len(packetsr)),self.args.restrict)
 				packets = packetsr
 		if self.layer == 2:
 			edges = map(self._layer_2_edge, packets)

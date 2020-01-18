@@ -38,13 +38,14 @@ def doLayer(layer, packets,fname,args,title):
 	"""
 	args.nmax = int(args.nmax)
 	g = GraphManager(packets, layer=layer, args=args)
-	g.title = "Layer %d using %s" % (layer,title)
+	g.title = "Layer %d using packets from %s" % (layer,title)
 	# g.graph['label'] = "Layer %d traffic graph for %s" % (layer,fname)
 	# cannot figure out how to get a lable - probably need a fake node without edges.
 	nn = len(g.graph.nodes())
 	if args.out:
 		if nn > args.nmax:
-			print('Asked to draw %d nodes with --nmax set to %d. Will also do useful protocols separately' % (nn,args.nmax))
+			if args.DEBUG:
+				print('Asked to draw %d nodes with --nmax set to %d. Will also do useful protocols separately' % (nn,args.nmax))
 			for kind in llook.keys():
 				subset = [x for x in packets if x.haslayer(kind) and x != None]  
 				if len(subset) > 2:
@@ -52,9 +53,10 @@ def doLayer(layer, packets,fname,args,title):
 					nn = len(sg.graph.nodes())
 					if nn > 2:
 						ofn = '%s_%d_%s_%s' % (kind,nn,title.replace('+','_'),args.out)
-						sg.title = 'Layer %d drawn using %s' % (layer,fname)
+						sg.title = 'Layer %d using packets from %s' % (layer,title)
 						sg.draw(filename = ofn)
-						print('drew %s %d nodes' % (ofn,nn))
+						if args.DEBUG:
+							print('drew %s %d nodes' % (ofn,nn))
 		g.draw(filename='%s_layer%d_%s' % (title.replace('+','_'),layer,args.out))
 	if args.frequent_in:
 		g.get_in_degree()
@@ -102,7 +104,7 @@ if __name__ == '__main__':
 			pin = ScapySource.load(args.pcaps)
 			title = '+'.join(args.pcaps)
 			if len(title) > 50:
-				title = title[:50] + '....etc'
+				title = title[:50] + '_etc'
 			doPcap(pin,args,title)
 		else:
 			for fname in args.pcaps:
