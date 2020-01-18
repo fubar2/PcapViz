@@ -47,16 +47,19 @@ def doLayer(layer, packets,fname,args,title):
 			if args.DEBUG:
 				print('Asked to draw %d nodes with --nmax set to %d. Will also do useful protocols separately' % (nn,args.nmax))
 			for kind in llook.keys():
-				subset = [x for x in packets if x.haslayer(kind) and x != None]  
-				if len(subset) > 2:
+				subset = [x for x in packets if x != None and x.haslayer(kind)]  
+				if len(subset) > 0:
 					sg = GraphManager(subset,layer=layer, args=args)
 					nn = len(sg.graph.nodes())
-					if nn > 2:
+					if nn > 1:
 						ofn = '%s_%d_%s_%s' % (kind,nn,title.replace('+','_'),args.out)
 						sg.title = 'Layer %d using packets from %s' % (layer,title)
 						sg.draw(filename = ofn)
 						if args.DEBUG:
 							print('drew %s %d nodes' % (ofn,nn))
+					else:
+						if args.DEBUG:
+							print('found',nn,'nodes so not a very worthwhile graph')
 		g.draw(filename='%s_layer%d_%s' % (title.replace('+','_'),layer,args.out))
 	if args.frequent_in:
 		g.get_in_degree()

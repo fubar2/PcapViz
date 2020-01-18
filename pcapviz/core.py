@@ -179,6 +179,9 @@ class GraphManager(object):
 	def draw(self, filename=None):
 		graph = self.get_graphviz_format()
 		graph.graph_attr['label'] = self.title
+		graph.graph_attr['labelloc'] = 't'
+		graph.graph_attr['fontsize'] = 20
+		graph.graph_attr['fontcolor'] = 'blue'
 		for node in graph.nodes():
 			if node not in self.data:
 				# node might be deleted, because it's not legit etc.
